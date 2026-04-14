@@ -1,0 +1,80 @@
+{
+  "models": [],
+  "schemas": [
+    {
+      "name": "LuckyNumberResponse",
+      "description": "Response payload returned after evaluating the submitted number",
+      "fields": [
+        {
+          "name": "number",
+          "type": "int",
+          "description": "The number submitted by the user"
+        },
+        {
+          "name": "is_lucky",
+          "type": "bool",
+          "description": "True if number matches the prefixed lucky number, False otherwise"
+        },
+        {
+          "name": "message",
+          "type": "str",
+          "description": "Lucky if matched, Better luck next time if not"
+        }
+      ]
+    }
+  ],
+  "services": [
+    {
+      "name": "LuckyNumberService",
+      "description": "Handles business logic for lucky number evaluation",
+      "config": {
+        "LUCKY_NUMBER": {
+          "type": "int",
+          "source": "environment variable or application settings",
+          "description": "The prefixed number to compare user input against"
+        }
+      },
+      "methods": [
+        {
+          "name": "check_lucky_number",
+          "description": "Compares input number against the configured LUCKY_NUMBER",
+          "input": [
+            {
+              "name": "number",
+              "type": "int"
+            }
+          ],
+          "output": "LuckyNumberResponse",
+          "logic": [
+            "Load LUCKY_NUMBER from application settings",
+            "If number == LUCKY_NUMBER: set is_lucky=True, message='Lucky'",
+            "Else: set is_lucky=False, message='Better luck next time'",
+            "Return LuckyNumberResponse with number, is_lucky, message"
+          ]
+        }
+      ]
+    }
+  ],
+  "apis": [
+    {
+      "path": "/lucky/{number}",
+      "method": "GET",
+      "summary": "Check if the submitted number is the lucky number",
+      "tag": "lucky-number",
+      "path_params": [
+        {
+          "name": "number",
+          "type": "int",
+          "validation": "gt=0",
+          "description": "Positive integer to check against the prefixed lucky number"
+        }
+      ],
+      "response_model": "LuckyNumberResponse",
+      "status_codes": {
+        "200": "Number evaluated successfully",
+        "422": "Validation error — non-numeric input or failed constraint"
+      },
+      "service": "LuckyNumberService.check_lucky_number"
+    }
+  ]
+}
